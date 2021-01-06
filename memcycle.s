@@ -11,5 +11,4 @@ jmp loop
 origpointer: membase
 pointer: membase
 _1: 1
-_255: 0xff
 membase:
