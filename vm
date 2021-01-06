@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $_i = 0;
+my %opname = map { $_i++ => $_ } qw(nop copy add sub xor and or not jmp jz out in);
+
+my %nargs = (
+    nop => 0,
+    copy => 2,
+    add => 2,
+    sub => 2,
+    xor => 2,
+    and => 2,
+    or => 2,
+    not => 1,
+    jmp => 1,
+    jz => 2,
+    out => 2,
+    in => 2,
+);
+
+my $in = join('', <>);
+
+warn "input larger than memory (" . length($in) . " > 256)\n" if length($in) > 256;
+
+my @mem = map { ord($_) } split //, $in;
+
+push @mem, 0 while @mem < 256;
+
+my $pc = 0;
+
+while (1) {
+    my $op = $mem[$pc];
+    my $opcode = $opname{$op}||'';
+
+    my @args = @mem[$pc+1..$pc+($nargs{$opcode}||0)];
+
+    print join(' ', @mem[0..30]), "\n";
+
+    print "pc=$pc\t" . ($opcode||$op) . "\t" . join(' ', @args) . "\n";
+
+    $pc += 1 + ($nargs{$opcode}||0);
+
+    if ($opcode eq 'nop') {
+    } elsif ($opcode eq 'copy') {
+        $mem[$args[0]] = $mem[$args[1]];
+    } elsif ($opcode eq 'add') {
+        $mem[$args[0]] += $mem[$args[1]];
+    } elsif ($opcode eq 'sub') {
+        $mem[$args[0]] -= $mem[$args[1]];
+    } elsif ($opcode eq 'xor') {
+        $mem[$args[0]] ^= $mem[$args[1]];
+    } elsif ($opcode eq 'and') {
+        $mem[$args[0]] &= $mem[$args[1]];
+    } elsif ($opcode eq 'or') {
+        $mem[$args[0]] |= $mem[$args[1]];
+    } elsif ($opcode eq 'not') {
+        $mem[$args[0]] = ~$mem[$args[0]];
+    } elsif ($opcode eq 'jmp') {
+        $pc = $args[0];
+    } elsif ($opcode eq 'jz') {
+        $pc = $args[1] if $mem[$args[0]] == 0;
+    } elsif ($opcode eq 'out') {
+        print "out: $mem[$args[0]]\n";
+    } elsif ($opcode eq 'in') {
+        $mem[$args[0]] = 0;
+    } else {
+        die "illegal opcode: $op\n";
+    }
+
+    $mem[$_] = $mem[$_]%256 for (0..255);
+}
