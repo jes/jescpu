@@ -36,26 +36,146 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     );
 
     /* RAM */
-    wire wr_enable;
-    wire [7:0] addr_bus;
+    reg wr_enable;
+    reg [7:0] addr_bus;
     wire [7:0] rdata;
     wire [7:0] wdata;
     ram memory (clk, wr_enable, addr_bus, wdata, rdata);
 
     /* CPU state */
-    reg [7:0] pc;
+    reg [7:0] pc = 0;
     reg [7:0] opcode;
     reg [7:0] operand1;
     reg [7:0] operand2;
-    parameter fetch1=1, fetch2=2, fetch3=3, compute=4, store=5;
-    reg [2:0] state;
+    reg [7:0] value1;
+    reg [7:0] value2;
+    parameter prefetch=0, opcode_fetch=1, op1_fetch=2, op2_fetch=3, indirect1_fetch=4, indirect2_fetch=4, compute=5;
+    parameter NOP=0, COPY=1, ADD=2, SUB=3, XOR=4, AND=5, OR=6, NOT=7, JMP=8, JZ=9, OUT=10, IN=11;
+    reg [2:0] state = prefetch;
 
     always @ (posedge clk) begin
-        addr_bus <= 1;
-        wr_enable <= 0;
         leds1 <= ~rdata;
-        leds2 <= ~addr_bus;
-        leds3 <= 8'hff;
-        leds4 <= 8'hff;
+        leds2 <= ~opcode;
+        leds3 <= ~state;
+        leds4 <= ~pc;
+
+        case (state)
+            prefetch: begin
+                addr_bus <= pc;
+                wr_enable <= 0;
+                state <= opcode_fetch;
+            end
+            opcode_fetch: begin
+                opcode <= rdata;
+                if (opcode == NOP) begin
+                    state <= prefetch;
+                    pc <= pc+1;
+                end else begin
+                    addr_bus <= pc+1;
+                    state <= op1_fetch;
+                end
+            end
+            op1_fetch: begin
+                operand1 <= rdata;
+                if (opcode == NOT) begin
+                    state <= indirect1_fetch;
+                end else if (opcode == JMP) begin
+                    state <= compute;
+                end else begin
+                    addr_bus <= pc+2;
+                    state <= op2_fetch;
+                end
+            end
+            op2_fetch: begin
+                operand2 <= rdata;
+                if (opcode == COPY) begin
+                    addr_bus <= operand2;
+                    state <= indirect2_fetch;
+                end else if (opcode == ADD || opcode == SUB || opcode == XOR || opcode == AND || opcode == OR || opcode == JZ || opcode == OUT) begin
+                    addr_bus <= operand1;
+                    state <= indirect1_fetch;
+                end else if (opcode == IN) begin
+                    state <= compute;
+                end
+            end
+            indirect1_fetch: begin
+                value1 <= rdata;
+                if (opcode == NOT || opcode == JZ || opcode == OUT) begin
+                    state <= compute;
+                end else begin
+                    addr_bus <= operand2;
+                    state <= indirect2_fetch;
+                end
+            end
+            indirect2_fetch: begin
+                value2 <= rdata;
+                state <= compute;
+            end
+            compute: begin
+                if (opcode == COPY) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= value2;
+                    state <= prefetch;
+                    pc <= pc+3;
+                end else if (opcode == ADD) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= value1 + value2;
+                    state <= prefetch;
+                    pc <= pc+3;
+                end else if (opcode == SUB) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= value1 - value2;
+                    state <= prefetch;
+                    pc <= pc+3;
+                end else if (opcode == XOR) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= value1 ^ value2;
+                    state <= prefetch;
+                    pc <= pc+3;
+                end else if (opcode == AND) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= value1 & value2;
+                    state <= prefetch;
+                    pc <= pc+3;
+                end else if (opcode == OR) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= value1 | value2;
+                    state <= prefetch;
+                    pc <= pc+3;
+                end else if (opcode == NOT) begin
+                    addr_bus <= operand1;
+                    wr_enable <= 1;
+                    wdata <= ~value1;
+                    state <= prefetch;
+                    pc <= pc+2;
+                end else if (opcode == JMP) begin
+                    state <= prefetch;
+                    pc <= operand1;
+                end else if (opcode == JZ) begin
+                    if (value1 == 0) begin
+                        state <= prefetch;
+                        pc <= operand2;
+                    end else begin
+                        state <= prefetch;
+                        pc <= pc+2;
+                    end
+                end else if (opcode == OUT) begin
+                    state <= prefetch;
+                    pc <= pc+2;
+                end else if (opcode == IN) begin
+                    state <= prefetch;
+                    pc <= pc+2;
+                end else begin
+                    state <= prefetch;
+                    pc <= pc+1; /* ??? */
+                end
+            end
+        endcase
     end
 endmodule
