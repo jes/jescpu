@@ -36,13 +36,11 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     );
 
     /* RAM */
-    wire mem_reset;
     wire wr_enable;
     wire [7:0] addr_bus;
     wire [7:0] rdata;
     wire [7:0] wdata;
-    wire mem_ready;
-    ram memory (clk, wr_enable, addr_bus, rdata, wdata);
+    ram memory (clk, wr_enable, addr_bus, wdata, rdata);
 
     /* CPU state */
     reg [7:0] pc;
@@ -53,10 +51,8 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     reg [2:0] state;
 
     always @ (posedge clk) begin
-        mem_reset <= 0;
-        addr_bus <= 0;
-        wr_enable <= 1;
-        wdata <= 8'b01010101;
+        addr_bus <= 1;
+        wr_enable <= 0;
         leds1 <= ~rdata;
         leds2 <= ~addr_bus;
         leds3 <= 8'hff;
