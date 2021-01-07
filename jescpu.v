@@ -49,7 +49,7 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     reg [7:0] operand2;
     reg [7:0] value1;
     reg [7:0] value2;
-    parameter prefetch=0, opcode_fetch=1, op1_fetch=2, op2_fetch=3, indirect1_fetch=4, indirect2_fetch=4, compute=5;
+    parameter prefetch=0, opcode_fetch=1, op1_fetch=2, op2_fetch=3, indirect1_fetch=4, indirect2_fetch=5, compute=6;
     parameter NOP=0, COPY=1, ADD=2, SUB=3, XOR=4, AND=5, OR=6, NOT=7, JMP=8, JZ=9, OUT=10, IN=11;
     reg [2:0] state = prefetch;
 
