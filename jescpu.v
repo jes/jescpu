@@ -22,10 +22,10 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     reg [7:0] leds2;
     reg [7:0] leds3;
     reg [7:0] leds4;
-	wire [7:0] leds;
-	wire [3:0] lcol;
-	assign { led8, led7, led6, led5, led4, led3, led2, led1 } = leds[7:0];
-	assign { lcol4, lcol3, lcol2, lcol1 } = lcol[3:0];
+    wire [7:0] leds;
+    wire [3:0] lcol;
+    assign { led8, led7, led6, led5, led4, led3, led2, led1 } = leds[7:0];
+    assign { lcol4, lcol3, lcol2, lcol1 } = lcol[3:0];
     LedScan scan (
         .clk12MHz(clk),
         .leds1(leds1),
