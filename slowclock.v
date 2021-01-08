@@ -1,6 +1,6 @@
 module slowclock (clk_in, clk_out);
     input clk_in;
-    output clk_out;
+    output reg clk_out;
     reg [31:0] count;
 
     always @ (posedge clk_in) begin

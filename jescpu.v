@@ -55,7 +55,7 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     reg [7:0] state = prefetch;
     reg [7:0] out0;
 
-    reg slowclk;
+    wire slowclk;
     slowclock s (clk, slowclk);
 
     always @ (posedge slowclk) begin
