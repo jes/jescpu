@@ -5,7 +5,7 @@ module ram (
     input wr_enable,
     input [7:0] addr,
     input [7:0] wdata,
-    output wire [7:0] rdata,
+    output reg [7:0] rdata,
 );
     reg [7:0] mem [0:255];
 
