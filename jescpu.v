@@ -51,7 +51,7 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     reg [7:0] value1;
     reg [7:0] value2;
     parameter prefetch=0, opcode_fetch=1, op1_fetch=2, op2_fetch=3, indirect1_fetch=4, indirect2_fetch=5, execute=6, halt=128;
-    parameter NOP=0, COPY=1, ADD=2, SUB=3, XOR=4, AND=5, OR=6, NOT=7, JMP=8, JZ=9, OUT=10, IN=11;
+    parameter NOP=0, COPY=1, ADD=2, SUB=3, XOR=4, AND=5, OR=6, NOT=7, JMP=8, JZ=9, OUT=10, IN=11, NUMOPS=12;
     reg [7:0] state = prefetch;
     reg [7:0] out0;
 
@@ -78,7 +78,7 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
                 if (rdata == NOP) begin
                     state <= prefetch;
                     pc <= pc+1;
-                end else if (rdata <= IN) begin
+                end else if (rdata < NUMOPS) begin
                     addr_bus <= pc+1;
                     state <= op1_fetch;
                 end else begin
