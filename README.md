@@ -23,6 +23,8 @@ implemented.
 
 ## Instruction set
 
+All opcodes and operands are 1 byte each.
+
 | Opcode | Mnemonic | Psuedocode |
 | :----- | :------- | :--------- |
 | 0      | nop      |            |
