@@ -21,6 +21,8 @@ the instruction to match the address that your pointer points to).
 In theory it supports input and output of 1 byte at a time to/from 256 devices each, but no devices are actually
 implemented.
 
+It does not support interrupts, DMA, virtual memory, or under-privileged modes.
+
 ## Instruction set
 
 All opcodes and operands are 1 byte each.
