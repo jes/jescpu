@@ -35,7 +35,7 @@ All opcodes and operands are 1 byte each.
 | 3      | `sub  a b`  | mem[a] -= mem[b] |
 | 4      | `xor  a b`  | mem[a] ^= mem[b] |
 | 5      | `and  a b`  | mem[a] &= mem[b] |
-| 6      | `or   a b`   | mem[a] |= mem[b] |
+| 6      | `or   a b`   | mem[a] \|= mem[b] |
 | 7      | `not  a`    | mem[a] = ~mem[a] |
 | 8      | `jmp  a`    | PC = a      |
 | 9      | `jz   a b`   | if (mem[a] == 0) PC = b |
