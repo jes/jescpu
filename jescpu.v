@@ -49,14 +49,15 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
     reg [7:0] operand2;
     reg [7:0] value1;
     reg [7:0] value2;
-    parameter prefetch=0, opcode_fetch=1, op1_fetch=2, op2_fetch=3, indirect1_fetch=4, indirect2_fetch=5, execute=6, wait=7, halt=128;
+    parameter prefetch=0, opcode_fetch=1, op1_fetch=2, op2_fetch=3, indirect1_fetch=4, indirect2_fetch=5, execute=6, wait=7, notready=8, halt=128;
     parameter NOP=0, COPY=1, ADD=2, SUB=3, XOR=4, AND=5, OR=6, NOT=7, JMP=8, JZ=9, OUT=10, IN=11, NUMOPS=12;
-    reg [7:0] state = prefetch;
+    reg [7:0] state = notready;
     reg [7:0] nextstate;
     reg [31:0] waittime = 1;
     reg [7:0] out0;
+    reg [31:0] ready_delay = 1000000;
 
-    parameter WAITCYCLES=1;
+    parameter WAITCYCLES=10;
 
     always @ (posedge clk) begin
         leds1 <= ~out0;
@@ -65,17 +66,31 @@ module top(clk,led1,led2,led3,led4,led5,led6,led7,led8,lcol1,lcol2,lcol3,lcol4);
         leds4 <= ~pc;
 
         case (state)
-            wait: begin
-                /* Not entirely sure what is going on here. If WAITCYCLES is 1,
-                   or above 22, then everything works, otherwise it sometimes
-                   works fine, and sometimes halts almost immediately, seemingly
-                   at random.
+            /* the "notready" state wastes some time when the system first comes
+               up to give the RAM time to start working,
+               see https://github.com/nmigen/nmigen/blob/master/nmigen/vendor/lattice_ice40.py#L350:
 
-                    WAITCYCLES | Behaviour
-                             1 | Always works
-                          2-22 | Sometimes works, sometimes halts in various states
-                           23+ | Always works
-                 */
+                 For unknown reasons (no errata was ever published, and no documentation mentions this
+                 issue), iCE40 BRAMs read as zeroes for ~3 us after configuration and release of internal
+                 global reset. Note that this is a *time-based* delay, generated purely by the internal
+                 oscillator, which may not be observed nor influenced directly. For details, see links:
+                  * https://github.com/cliffordwolf/icestorm/issues/76#issuecomment-289270411
+                  * https://github.com/cliffordwolf/icotools/issues/2#issuecomment-299734673
+
+                 To handle this, it is necessary to have a global reset in any iCE40 design that may
+                 potentially instantiate BRAMs, and assert this reset for >3 us after configuration.
+            */
+            notready: begin
+                if (ready_delay == 0) begin
+                    state <= prefetch;
+                end else begin
+                    ready_delay <= ready_delay - 1;
+                end
+            end
+
+            /* the "wait" state wastes (at least) 1 cycle to allow the RAM time to give its results;
+               increase WAITCYCLES to slow the CPU down to observe its operation */
+            wait: begin
                 if (waittime >= WAITCYCLES) begin
                     state <= nextstate;
                     waittime <= 1;
